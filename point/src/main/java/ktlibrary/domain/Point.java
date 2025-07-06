@@ -1,17 +1,9 @@
 package ktlibrary.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDate;
-import java.util.Collections;
+
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import javax.persistence.*;
-import ktlibrary.PointApplication;
-import ktlibrary.domain.PointDeducted;
-import ktlibrary.domain.PointInsufficient;
 import lombok.Data;
-import org.springframework.context.ApplicationEventPublisher;
 
 @Entity
 @Table(name = "Point_table")
