@@ -42,6 +42,9 @@ public class PolicyHandler {
             } else if (eventType.equals("PointSaved")) {
                 PointSaved pointSaved = objectMapper.readValue(eventString, PointSaved.class);
                 wheneverPointSaved_Notify(pointSaved);
+            } else if (eventType.equals("PointInsufficient")) {  
+                PointInsufficient pointInsufficient = objectMapper.readValue(eventString, PointInsufficient.class);
+                wheneverPointInsufficient_Notify(pointInsufficient);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,6 +83,10 @@ public class PolicyHandler {
         System.out.println(
             "\n\n##### listener Notify : " + pointSaved + "\n\n"
         );
+    }
+
+    public void wheneverPointInsufficient_Notify(@Payload PointInsufficient pointInsufficient) {
+        System.out.println("\n\n##### 포인트 부족 이벤트 수신됨: " + pointInsufficient + "\n\n");
     }
 }
 //>>> Clean Arch / Inbound Adaptor

@@ -1,14 +1,13 @@
 package ktlibrary.infra;
 
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import ktlibrary.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.Map;
 
 //<<< Clean Arch / Inbound Adaptor
 
@@ -47,6 +46,27 @@ public class PointController {
     public Point getPointByCustomerId(@PathVariable Long customerId) {
         return pointRepository.findByCustomerId(customerId)
             .orElseThrow(() -> new IllegalStateException("포인트 정보가 없습니다."));
+    }
+
+    @PostMapping("/points/deduct")
+    public ResponseEntity<?> deductPoint(@RequestBody RequestPointCommand command) {
+        Point point = pointRepository.findByCustomerId(command.getCustomerId())
+            .orElseThrow(() -> new IllegalStateException("포인트 정보 없음"));
+
+        boolean success = point.deduct(command.getPoint());
+
+        if (success) {
+            pointRepository.save(point);
+            return ResponseEntity.ok(Map.of(
+                "status", "SUCCESS",
+                "message", "포인트 차감 성공"
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                "status", "POINT_INSUFFICIENT",
+                "message", "포인트가 부족합니다"
+            ));
+        }
     }
 
 }
