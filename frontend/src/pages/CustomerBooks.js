@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BookCard from '../components/BookCard';
-import { platformAPI } from '../services/api';
+import { platformAPI, customerAPI, pointAPI } from '../services/api';
 import styles from '../styles/CustomerBooks.module.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,21 +35,62 @@ const CustomerBooks = () => {
   // 도서 열람 (클릭 시)
   const handleBookClick = async (book) => {
     try {
-      // api.js의 platformAPI 사용
-      await platformAPI.readBook(book.id);
-      
-      // 열람 후 도서 정보 새로고침
-      await fetchBooks();
-      
-      // 여기에 도서 상세 페이지로 이동하거나 모달을 띄우는 로직 추가 가능
-      // alert(`"${book.title}" 도서를 열람했습니다.`);
-      navigate(`/customer/books/${book.id}`);
+      // ====================
+      // 구독권 여부를 위해서 customerId 필요
+      // ====================
+      const userJson = localStorage.getItem("user");
+      const user = JSON.parse(userJson);
+      const requestData = {
+        customerId: user.id,
+        bookId: book.bookId,
+      };
+
+      const res = await customerAPI.requestBook(requestData);
+
+      if (res.status === 'SUCCESS') {
+        // api.js의 platformAPI 사용
+        await platformAPI.readBook(book.id);
+        
+        // 열람 후 도서 정보 새로고침
+        await fetchBooks();
+        
+        // 여기에 도서 상세 페이지로 이동하거나 모달을 띄우는 로직 추가 가능
+        alert(`"${book.title}" 도서를 열람했습니다.`);
+        navigate(`/customer/books/${book.id}`);
+      }
+      // 구독권이 없는 경우
+      else if (res.status === 'SUBSCRIPTION_INVALID') {
+        const confirmUsePoint = window.confirm(
+          `구독권이 없습니다.\n${res.price?.toLocaleString() ?? 0} 포인트를 차감하고 도서를 열람하시겠습니까?`
+        );
+
+        if (confirmUsePoint) {
+          // 사용자가 포인트 차감에 동의한 경우 → 도서 열람 시도
+          await platformAPI.readBook(book.id); // Kafka 이벤트 흐름을 통해 차감
+          alert(`"${book.title}" 도서를 열람했습니다.`);
+          navigate(`/customer/books/${book.id}`);
+        } else {
+          alert("도서 열람이 취소되었습니다.");
+        }
+      }
+
+      // 포인트가 부족한 경우
+      else if (res.status === 'INSUFFICIENT_POINTS') {
+        alert(res.message || '포인트가 부족합니다. 충전 페이지로 이동합니다.');
+        navigate('/customer/points');
+      }
+
+      // 그 외 알 수 없는 상태
+      else {
+        alert(res.message || '도서 열람 요청이 처리되지 않았습니다.');
+      }
+
     } catch (err) {
       console.error('도서 열람 실패:', err);
       alert(err.message || '도서 열람에 실패했습니다.');
     }
-    
   };
+
 
   // 카테고리별 필터링
   const filteredBooks = selectedCategory === '전체' 
