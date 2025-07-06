@@ -1,5 +1,6 @@
 package ktlibrary.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -53,6 +54,7 @@ public class Customer {
         updatedAt = new Date();
     }
     @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("customer")
     private Subsciption subscription;
 
     // 새로 등록된 고객인지 확인하는 플래그

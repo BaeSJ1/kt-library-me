@@ -1,5 +1,6 @@
 package ktlibrary.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -35,6 +36,7 @@ public class Subsciption {
 
     @OneToOne
     @JoinColumn(name = "customer_id")
+    @JsonIgnoreProperties("subscription")
     private Customer customer;
 
     public static SubsciptionRepository repository() {
@@ -90,46 +92,6 @@ public static void isSubscribed(BookRequested bookRequested) {
     public Long getCustomerId() {
         return this.customer != null ? this.customer.getId() : null;
     }
-
-    //>>> Clean Arch / Port Method
-
-    //<<< Clean Arch / Port Method
-    
-    // public static void isSubscribed(BookRequested bookRequested) {
-    //     //implement business logic here:
-
-    //     /** Example 1:  new item 
-    //     Subsciption subsciption = new Subsciption();
-    //     repository().save(subsciption);
-
-    //     ValidSubscription validSubscription = new ValidSubscription(subsciption);
-    //     validSubscription.publishAfterCommit();
-    //     InvalidSubscription invalidSubscription = new InvalidSubscription(subsciption);
-    //     invalidSubscription.publishAfterCommit();
-    //     */
-
-    //     /** Example 2:  finding and process
-        
-    //     // if bookRequested.subsciptionId exists, use it
-        
-    //     // ObjectMapper mapper = new ObjectMapper();
-    //     // Map<Long, Object> customerMap = mapper.convertValue(bookRequested.getSubsciptionId(), Map.class);
-
-    //     repository().findById(bookRequested.get???()).ifPresent(subsciption->{
-            
-    //         subsciption // do something
-    //         repository().save(subsciption);
-
-    //         ValidSubscription validSubscription = new ValidSubscription(subsciption);
-    //         validSubscription.publishAfterCommit();
-    //         InvalidSubscription invalidSubscription = new InvalidSubscription(subsciption);
-    //         invalidSubscription.publishAfterCommit();
-
-    //      });
-    //     */
-
-    // }
-    //>>> Clean Arch / Port Method
 
 }
 //>>> DDD / Aggregate Root
