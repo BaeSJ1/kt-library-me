@@ -22,7 +22,8 @@ public class Subsciption {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Boolean isValid;
+    // 기본값 부여
+    private Boolean isValid = false;
 
     private String startDate;
 

@@ -45,6 +45,13 @@ public class CustomerApplicationService {
             // 유효하지 않은 구독 이벤트 발행
             InvalidSubscription event = new InvalidSubscription(sub);
             event.setCustomerId(customerId);
+            /*
+             유효하지 않은 구독 이벤트 발행될때 가격 안넘어오는 문제 수정
+             */
+            ReadBook bookInfo = readBookRepository.findByBookId(bookId).orElse(null);
+            if (bookInfo != null) {
+                event.setPrice(bookInfo.getPrice());
+            }
             event.publishAfterCommit();
             System.out.println("[CustomerApplicationService] 유효하지 않은 구독 : " + event);
         }
