@@ -1,0 +1,158 @@
+version: '2'
+services:
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: my-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      CLUSTER_ID: "kraft-cluster-01"
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ID: "1"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@my-kafka:9093"
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://my-kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --list --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  point:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: point
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 10 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8082:8080"  # 컨테이너 내부 8080 -> 호스트 8082
+    working_dir: /usr/src
+    volumes:
+      - ./point:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  author:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: author
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 15 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8083:8080"  # 컨테이너 내부 8080 -> 호스트 8083
+    working_dir: /usr/src
+    volumes:
+      - ./author:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  customer:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: customer
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 20 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8084:8080"  # 컨테이너 내부 8080 -> 호스트 8084
+    working_dir: /usr/src
+    volumes:
+      - ./customer:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  manuscript:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: manuscript
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 25 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8085:8080"  # 컨테이너 내부 8080 -> 호스트 8085
+    working_dir: /usr/src
+    volumes:
+      - ./manuscript:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  ai:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: ai
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 30 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8086:8080"  # 컨테이너 내부 8080 -> 호스트 8086
+    working_dir: /usr/src
+    volumes:
+      - ./ai:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  platform:
+    depends_on:
+      kafka:
+        condition: service_healthy
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: platform
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 35 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8087:8080"  # 컨테이너 내부 8080 -> 호스트 8087
+    working_dir: /usr/src
+    volumes:
+      - ./platform:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+  gateway:
+    depends_on:
+      - point
+      - author
+      - customer
+      - manuscript
+      - ai
+      - platform
+    image: adoptopenjdk/maven-openjdk11:latest
+    container_name: gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    command: bash -c "sleep 40 && mvn clean compile && mvn spring-boot:run"
+    ports:
+      - "8088:8080"  # 컨테이너 내부 8080 -> 호스트 8088
+    working_dir: /usr/src
+    volumes:
+      - ./gateway:/usr/src
+      - ./maven-repo:/root/.m2
+    restart: on-failure
+
+volumes:
+  kafka-data:

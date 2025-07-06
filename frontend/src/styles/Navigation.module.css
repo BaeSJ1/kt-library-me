@@ -1,0 +1,248 @@
+/* Navigation Styles */
+.navigation {
+  background-color: white;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.navigationContainer {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .navigationContainer {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .navigationContainer {
+    padding: 0 2rem;
+  }
+}
+
+.navigationContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+}
+
+.navigationLeft {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.navigationLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.navigationLogo:hover {
+  transform: scale(1.02);
+}
+
+.logoIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.logoIcon .material-icons {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.logoText {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.02em;
+}
+
+.navigationButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navButton:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  transform: translateY(-1px);
+}
+
+.navButton.active {
+  border-bottom: 2px solid #000;
+  background-color: transparent;
+  color: #1f2937;
+}
+
+.navButton .material-icons {
+  font-size: 1.2rem;
+}
+
+.navigationRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.userRole {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.userRole.author {
+  color: #059669;
+}
+
+.userRole.customer {
+  color: #3b82f6;
+}
+
+.userRole.admin {
+  color: #dc2626;
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.logoutButton .material-icons {
+  font-size: 1.1rem;
+}
+
+/* Guest Navigation */
+.guestButtons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.loginButton {
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.loginButton:hover {
+  color: #1f2937;
+  background-color: #f3f4f6;
+}
+
+.signupButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.signupButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .navigationButtons {
+    display: none;
+  }
+  
+  .userDetails {
+    display: none;
+  }
+  
+  .userInfo {
+    padding: 0.5rem;
+  }
+  
+  .navButton {
+    padding: 0.5rem;
+  }
+  
+  .navButton span {
+    display: none;
+  }
+}

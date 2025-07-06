@@ -1,0 +1,68 @@
+/* src/styles/BookDetailed.module.css */
+
+.card {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+.content {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.imageBox {
+  flex: 1;
+  min-width: 200px;
+}
+
+.coverImage {
+  width: 100%;
+  height: auto;
+  max-width: 220px;
+  border-radius: 8px;
+}
+
+.details {
+  flex: 2;
+  min-width: 300px;
+}
+
+.details h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.details p {
+  margin: 0.5rem 0;
+  color: #555;
+}
+
+.downloadBox {
+  margin-top: 2rem;
+  text-align: right;
+}
+
+.downloadBox a {
+  text-decoration: none;
+  color: #0077cc;
+  font-weight: bold;
+}
+
+.message {
+  padding: 2rem;
+  text-align: center;
+  color: #555;
+}
+
+.error {
+  padding: 2rem;
+  text-align: center;
+  color: red;
+  font-weight: bold;
+}

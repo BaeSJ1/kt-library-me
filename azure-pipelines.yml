@@ -1,0 +1,404 @@
+# Azure Pipelines for KT-Library Monorepo
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - README.md
+    - .gitignore
+
+# --- 변수 설정 ---
+variables:
+  AZURE_SERVICE_CONNECTION: 'AzureResourceManagerConnection'
+  ACR_SERVICE_CONNECTION: 'AzureContainerRegistryConnection'
+  RESOURCE_GROUP: 'ai0822-rsrcgrp'
+  ACR_NAME: 'ai0822'
+  ACR_LOGIN_SERVER: 'ai0822.azurecr.io'
+  AKS_CLUSTER_NAME: 'ai0822-aks'
+  IMAGE_TAG: '$(Build.BuildId)'
+
+# --- 파이프라인 단계 ---
+stages:
+# =================================================================================
+# STAGE 1: Build and Push Docker Images
+# =================================================================================
+- stage: Build
+  displayName: 'Build and Push to ACR'
+  jobs:
+  # --- Job to Detect Changes ---
+  - job: DetectChanges
+    displayName: 'Detect Service Changes'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+      fetchDepth: 2 # Needed to compare HEAD with HEAD~1
+    - bash: |
+        set -e
+        echo "Detecting changes..."
+        # For push triggers, compare HEAD with the previous commit.
+        CHANGED_FILES=$(git diff HEAD~1 HEAD --name-only)
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+
+        SERVICES="ai author customer gateway manuscript platform point frontend"
+        for SERVICE in $SERVICES; do
+          # Default to false
+          echo "##vso[task.setvariable variable=${SERVICE}_changed;isOutput=true]false"
+          if echo "$CHANGED_FILES" | grep -q -E "^${SERVICE}/"; then
+            echo "Changes detected in '$SERVICE'. Setting output variable to true."
+            echo "##vso[task.setvariable variable=${SERVICE}_changed;isOutput=true]true"
+          fi
+        done
+      name: SetChangeVars
+
+  # --- Service Build Jobs ---
+  # Each build job depends on DetectChanges and runs only if changes were found.
+  - job: Build_ai
+    displayName: 'Build AI Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.ai_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'ai/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'ai'
+        dockerfile: 'ai/Dockerfile'
+        buildContext: 'ai'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_author
+    displayName: 'Build Author Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.author_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'author/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'author'
+        dockerfile: 'author/Dockerfile'
+        buildContext: 'author'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_customer
+    displayName: 'Build Customer Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.customer_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'customer/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'customer'
+        dockerfile: 'customer/Dockerfile'
+        buildContext: 'customer'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_gateway
+    displayName: 'Build Gateway Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.gateway_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'gateway/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'gateway'
+        dockerfile: 'gateway/Dockerfile'
+        buildContext: 'gateway'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_manuscript
+    displayName: 'Build Manuscript Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.manuscript_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'manuscript/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'manuscript'
+        dockerfile: 'manuscript/Dockerfile'
+        buildContext: 'manuscript'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_platform
+    displayName: 'Build Platform Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.platform_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'platform/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'platform'
+        dockerfile: 'platform/Dockerfile'
+        buildContext: 'platform'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_point
+    displayName: 'Build Point Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.point_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: Maven@3
+      displayName: 'Maven Build'
+      inputs: { mavenPomFile: 'point/pom.xml', goals: 'package -DskipTests' }
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'point'
+        dockerfile: 'point/Dockerfile'
+        buildContext: 'point'
+        tags: $(IMAGE_TAG)
+
+  - job: Build_frontend
+    displayName: 'Build Frontend Service'
+    dependsOn: DetectChanges
+    condition: and(succeeded(), eq(dependencies.DetectChanges.outputs['SetChangeVars.frontend_changed'], 'true'))
+    pool: { vmImage: 'ubuntu-latest' }
+    steps:
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: '18.x'
+    - script: |
+        cd frontend
+        npm install
+        npm run build
+      displayName: 'NPM Install and Build'
+    - task: Docker@2
+      displayName: 'Build and Push Docker Image'
+      inputs:
+        command: buildAndPush
+        containerRegistry: $(ACR_SERVICE_CONNECTION)
+        repository: 'frontend'
+        dockerfile: 'frontend/Dockerfile'
+        buildContext: 'frontend'
+        tags: $(IMAGE_TAG)
+
+# =================================================================================
+# STAGE 2: Deploy to Azure Kubernetes Service (AKS)
+# =================================================================================
+- stage: Deploy
+  displayName: 'Deploy to AKS'
+  dependsOn: Build
+  jobs:
+  - job: Deploy_all_services
+    displayName: 'Deploy Services'
+    pool: { vmImage: 'ubuntu-latest' }
+    variables:
+      AI_BUILD_RESULT: $[stageDependencies.Build.Build_ai.result]
+      AUTHOR_BUILD_RESULT: $[stageDependencies.Build.Build_author.result]
+      CUSTOMER_BUILD_RESULT: $[stageDependencies.Build.Build_customer.result]
+      GATEWAY_BUILD_RESULT: $[stageDependencies.Build.Build_gateway.result]
+      MANUSCRIPT_BUILD_RESULT: $[stageDependencies.Build.Build_manuscript.result]
+      PLATFORM_BUILD_RESULT: $[stageDependencies.Build.Build_platform.result]
+      POINT_BUILD_RESULT: $[stageDependencies.Build.Build_point.result]
+      FRONTEND_BUILD_RESULT: $[stageDependencies.Build.Build_frontend.result]
+    steps:
+    # Each deploy task runs only if its corresponding build job succeeded.
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' ai/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|ai|g' ai/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' ai/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in AI deployment.yaml'
+      condition: and(succeeded(), eq(variables.AI_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy AI Service'
+      condition: and(succeeded(), eq(variables.AI_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'ai/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' author/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|author|g' author/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' author/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Author deployment.yaml'
+      condition: and(succeeded(), eq(variables.AUTHOR_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Author Service'
+      condition: and(succeeded(), eq(variables.AUTHOR_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'author/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' customer/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|customer|g' customer/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' customer/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Customer deployment.yaml'
+      condition: and(succeeded(), eq(variables.CUSTOMER_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Customer Service'
+      condition: and(succeeded(), eq(variables.CUSTOMER_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'customer/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' gateway/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|gateway|g' gateway/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' gateway/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Gateway deployment.yaml'
+      condition: and(succeeded(), eq(variables.GATEWAY_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Gateway Service'
+      condition: and(succeeded(), eq(variables.GATEWAY_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'gateway/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' manuscript/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|manuscript|g' manuscript/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' manuscript/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Manuscript deployment.yaml'
+      condition: and(succeeded(), eq(variables.MANUSCRIPT_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Manuscript Service'
+      condition: and(succeeded(), eq(variables.MANUSCRIPT_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'manuscript/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' platform/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|platform|g' platform/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' platform/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Platform deployment.yaml'
+      condition: and(succeeded(), eq(variables.PLATFORM_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Platform Service'
+      condition: and(succeeded(), eq(variables.PLATFORM_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'platform/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' point/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|point|g' point/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' point/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Point deployment.yaml'
+      condition: and(succeeded(), eq(variables.POINT_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Point Service'
+      condition: and(succeeded(), eq(variables.POINT_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'point/kubernetes/deployment.yaml'
+
+    - bash: |
+        ACR_LOGIN_SERVER=$(ACR_LOGIN_SERVER)
+        IMAGE_TAG=$(IMAGE_TAG)
+        sed -i 's|$(ACR_LOGIN_SERVER)|${ACR_LOGIN_SERVER}|g' frontend/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_NAME)|frontend|g' frontend/kubernetes/deployment.yaml
+        sed -i 's|$(IMAGE_TAG)|${IMAGE_TAG}|g' frontend/kubernetes/deployment.yaml
+      displayName: 'Substitute variables in Frontend deployment.yaml'
+      condition: and(succeeded(), eq(variables.FRONTEND_BUILD_RESULT, 'Succeeded'))
+
+    - task: Kubernetes@1
+      displayName: 'Deploy Frontend Service'
+      condition: and(succeeded(), eq(variables.FRONTEND_BUILD_RESULT, 'Succeeded'))
+      inputs:
+        connectionType: 'Azure Resource Manager'
+        azureSubscriptionEndpoint: $(AZURE_SERVICE_CONNECTION)
+        azureResourceGroup: $(RESOURCE_GROUP)
+        kubernetesCluster: $(AKS_CLUSTER_NAME)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: 'frontend/kubernetes/deployment.yaml'

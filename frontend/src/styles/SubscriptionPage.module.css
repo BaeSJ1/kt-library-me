@@ -1,0 +1,82 @@
+.subscriptionContainer {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+  padding: 2rem;
+}
+
+.subscriptionCard {
+  background-color: white;
+  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 1.5rem;
+}
+
+.userInfo {
+  text-align: left;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.purchaseButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background-color: #22c55e;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.purchaseButton:hover {
+  background-color: #16a34a;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background-color: #ef4444;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: #b91c1c;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #fef9c3;
+  border: 1px solid #facc15;
+  border-radius: 6px;
+  color: #92400e;
+  font-weight: 500;
+}

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: author
+  labels:
+    app: author
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: author
+  template:
+    metadata:
+      labels:
+        app: author
+    spec:
+      containers:
+        - name: author
+          image: $(ACR_LOGIN_SERVER)/$(IMAGE_NAME):$(IMAGE_TAG)
+          ports:
+            - containerPort: 8080

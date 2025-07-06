@@ -1,0 +1,100 @@
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+#<<< API Gateway / Routes
+      routes:
+        - id: point
+          uri: http://localhost:8082
+          predicates:
+            - Path=/points/**, 
+        - id: author
+          uri: http://localhost:8083
+          predicates:
+            - Path=/authors/**, 
+        - id: customer
+          uri: http://localhost:8084
+          predicates:
+            - Path=/customers/**, /subsciptions/**, 
+        - id: manuscript
+          uri: http://localhost:8085
+          predicates:
+            - Path=/manuscripts/**, /readAuthors/**,
+        - id: ai
+          uri: http://localhost:8086
+          predicates:
+            - Path=/books/**, /test/book
+        - id: platform
+          uri: http://localhost:8087
+          predicates:
+            - Path=/bookShelves/**, 
+        - id: frontend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/**
+#>>> API Gateway / Routes
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: false
+
+
+---
+
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: point
+          uri: http://point:8080
+          predicates:
+            - Path=/points/**,
+        - id: author
+          uri: http://author:8080
+          predicates:
+            - Path=/authors/**,
+        - id: customer
+          uri: http://customer:8080
+          predicates:
+            - Path=/customers/**, /subsciptions/**,
+        - id: manuscript
+          uri: http://manuscript:8080
+          predicates:
+            - Path=/manuscripts/**, /readAuthors/**,
+        - id: ai
+          uri: http://ai:8080
+          predicates:
+            - Path=/books/**, / test/book/**, /test-category/**, /test-cover/**, /test-ebook/**. /test/event/**, /test-summary/**,
+        - id: platform
+          uri: http://platform:8080
+          predicates:
+            - Path=/bookShelves/**,
+        - id: frontend
+          uri: http://frontend:8080
+          predicates:
+            - Path=/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: false
+
+server:
+  port: 8080

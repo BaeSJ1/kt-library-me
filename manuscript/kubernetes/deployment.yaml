@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: manuscript
+  labels:
+    app: manuscript
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: manuscript
+  template:
+    metadata:
+      labels:
+        app: manuscript
+    spec:
+      containers:
+        - name: manuscript
+          image: $(ACR_LOGIN_SERVER)/$(IMAGE_NAME):$(IMAGE_TAG)
+          ports:
+            - containerPort: 8080
