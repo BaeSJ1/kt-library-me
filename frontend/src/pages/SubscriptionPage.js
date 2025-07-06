@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../styles/SubscriptionPage.module.css';
-import axios from 'axios';
+import { customerAPI } from '../services/api';
 
-const API_BASE = 'http://130.107.27.223';
 const SubscriptionPage = () => {
   const [message, setMessage] = useState('');
   const [user, setUser] = useState(null);
   const [subscriptionId, setSubscriptionId] = useState('');
-  const [plan, setPlan] = useState('');
-  const [userId, setUserId] = useState('');
-  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -27,50 +23,32 @@ const SubscriptionPage = () => {
 //구독
  const handleSubscribe = async () => {
     try {
-      const response = await axios.post(`${API_BASE}/subsciptions/subscribe`,{
-       headers: {
-             'Content-Type': 'application/json'
-           },
-      data:{
-        customerId: Number(user.id)
-      }
-      });
-       const newId = response.data.id;     // 받은 ID 저장
-      setSubscriptionId(newId);        
-      setMessage(`구독 성공: ID ${subscriptionId}`);
+      const response = await customerAPI.subscribe(Number(user.id));
+      const newId = response.id;
+      setSubscriptionId(newId);
+      setMessage(`구독 성공: ID ${newId}`);
     } catch (error) {
       console.error(error);
-
-      console.error(error);
-
-    // 백엔드에서 예외 메시지가 평문으로 왔을 경우
-    if (error.response && typeof error.response.data === 'string') {
-      setMessage(`구독 실패: ${error.response.data}`);
-    } else {
-      // 기타 예외 처리
-      setMessage('구독 실패: 알 수 없는 오류');
-    }
-      
+      if (error.message) {
+        setMessage(`구독 실패: ${error.message}`);
+      } else {
+        setMessage('구독 실패: 알 수 없는 오류');
+      }
     }
   };
+
   // 구독 취소
   const handleCancel = async () => {
     try {
-      await axios.delete(`${API_BASE}/subsciptions/${subscriptionId}/cancelsubscription`, {
-        headers: {
-        'Content-Type': 'application/json'
-      },
-        data: { 
-          customerId: Number(userId),
-         }
-        
-      });
+      await customerAPI.cancelSubscription(subscriptionId, Number(user.id));
+      setSubscriptionId('');
       setMessage('구독 취소 성공');
     } catch (error) {
       console.error(error);
       setMessage(`구독 취소 실패: ID ${subscriptionId}`);
     }
   };
+
   if (!user) return <div>로딩 중...</div>;
 
   return (

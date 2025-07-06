@@ -1,6 +1,6 @@
 // API 기본 설정
 const API_CONFIG = {
-  gateway: "http://130.107.27.223"
+  gateway: "https://8088-baesj1-ktlibraryme-mnwlvo3uzp6.ws-us120.gitpod.io"
 };
 
 /**
@@ -280,7 +280,35 @@ export const customerAPI = {
   getCustomerSubscription: async (customerId) => {
     const url = `${API_CONFIG.gateway}/subsciptions/search/findByCustomer_IdAndIsValid?customerId=${customerId}&isValid=true`;
     return await apiRequest(url);
-  }
+  },
+
+   /**
+   * 고객 구독 신청
+   * @param {number} customerId - 고객 ID
+   * @returns {Promise} 구독 결과
+   */
+  subscribe: async (customerId) => {
+    const url = `${API_CONFIG.gateway}/subsciptions/subscribe`;
+    return await apiRequest(url, {
+      method: 'POST',
+      body: JSON.stringify({ customerId }),
+    });
+  },
+
+  /**
+   * 고객 구독 취소
+   * @param {number} subscriptionId - 구독 ID
+   * @param {number} customerId - 고객 ID
+   * @returns {Promise} 취소 결과
+   */
+  cancelSubscription: async (subscriptionId, customerId) => {
+    const url = `${API_CONFIG.gateway}/subsciptions/${subscriptionId}/cancelsubscription`;
+    return await apiRequest(url, {
+      method: 'DELETE',
+      body: JSON.stringify({ customerId }),
+    });
+  },
+
 };
 
 
