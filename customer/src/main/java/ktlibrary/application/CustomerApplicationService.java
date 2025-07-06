@@ -28,7 +28,7 @@ public class CustomerApplicationService {
 
         if (sub.getIsValid() ) {
             // ReadModel에서 책 정보 가져오기
-            ReadBook bookInfo = readBookRepository.findByBookId(bookId);
+            ReadBook bookInfo = readBookRepository.findByBookId(bookId).orElse(null);;
 
             if (bookInfo != null) {
                 // 유효한 구독 이벤트 발행

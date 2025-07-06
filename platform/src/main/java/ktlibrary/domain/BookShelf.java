@@ -91,5 +91,15 @@ public class BookShelf {
         return new BookReadResult(this.viewCount, promoted);
     }
 
+    // ===================
+    // 트랜잭션 커밋 후에 발행되어야 함. 이거 없으면 post 2번 보내야지 반영됨
+    // ===================
+    @PostPersist
+    public void onPostPersist() {
+        BookRegistered event = new BookRegistered(this);
+        event.publishAfterCommit();  // 트랜잭션 커밋 후 발행됨
+        System.out.println("BookRegistered 이벤트 발행 완료 (onPostPersist): " + event);
+    }
+
 
 }

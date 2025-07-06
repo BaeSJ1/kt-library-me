@@ -131,7 +131,7 @@ public class Customer {
     //<<< Clean Arch / Port Method
     public void requestBook(RequestBookCommand requestBookCommand) {
         //implement business logic here:
-        ReadBook readBook = readBookRepository().findByBookId(requestBookCommand.getBookId());
+        ReadBook readBook = readBookRepository().findByBookId(requestBookCommand.getBookId()).orElse(null);
         Subsciption subsciption = subsciptionRepository().findByCustomer_Id(requestBookCommand.getCustomerId());
 
         if (readBook == null) {

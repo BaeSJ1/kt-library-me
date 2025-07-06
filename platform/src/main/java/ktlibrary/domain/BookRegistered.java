@@ -18,8 +18,15 @@ public class BookRegistered extends AbstractEvent {
     private Boolean isBestSeller;
     private Long viewCount;
 
+    // 생성자 내부 필드 매핑
     public BookRegistered(BookShelf aggregate) {
         super(aggregate);
+        this.id = aggregate.getId();  // 서재 ID
+        this.bookId = aggregate.getBookId();
+        this.title = aggregate.getTitle();
+        this.price = aggregate.getPrice();
+        this.isBestSeller = aggregate.getIsBestSeller();
+        this.viewCount = aggregate.getViewCount();
     }
 
     public BookRegistered() {
